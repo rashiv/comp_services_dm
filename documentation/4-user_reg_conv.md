@@ -1,18 +1,20 @@
-# Documentation for QUERY 3: Average user session duration trends
+# Documentation for QUERY 4: User journeys for registration conversion
 
 This query creates a table with the following columns:
-* `time_bin_floor`: lower bin value for average dwell time of a user on an ad per session (binsize = 5s)
-* `count`: number of active users viewing content for each recorded day
+* `User_Id`: Id for each registered user
+* `unique_content_count`: total number of unique pieces of content viewed by a user before registering
+* `most_viewed_content_type`: most common content type viewed by a user before registering
+* `unique_referrer_url_count`: total number of unique referral urls
+* `avg_ad_time`: average time spent on an ad by a user before registering
 
 ## Analytic Value
-* This table yields a histogram of average dwell time of a user on an ad per session, with binsize = 5s
-* It can be used to determine which ads generate the most revenue
+* This table tracks user activity for users before they became registered users.
+* In conjunction with the QUERY 5 table for registered users, it can be used in A/B testing types of comparative analyses to determine what content types and ad durations are most likely to convert users.
 
 ## Performance Considerations
-* This query performs a JOIN and an aggregation on the `Ad_Service_Interaction_Data` table (150 B records). 
-* The aggregation to get counts is a slow operation, especially since the JOIN  is with the `Page_Impression` table (100 B records). 
-* It can be further optimized by increasing the bin size, which is effectively the grouping key.
+* This query performs multiple JOIN operations with multiple aggregations. 
+* While the aggregation to get counts is a necessary and slow operation, some of the INNER JOINs can be optimized by making them hash joins, since the `Registered_Users` and `OAuth_Id_Service` tables are 4 orders of magnitude smaller (60-80 M records) than the `Page_Impression` and `Ad_Service_Interaction_Data` tables.
+
 
 ## Scheduling
-* This can be scheduled multiple times a day for revenue analysis on the displayed Ads. 
-* Alternatively, it can also be scheduled with the cadence of Ad refreshes.
+* These don't need to be scheduled in real-time, as A/B testing is usually planned over multiple days/ events. 
